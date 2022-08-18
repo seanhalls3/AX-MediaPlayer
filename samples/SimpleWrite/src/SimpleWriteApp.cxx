@@ -18,9 +18,9 @@
 #pragma comment(lib, "Mfreadwrite.lib")
 
 #if __has_include( "cinder/CinderImGui.h")
-    #include "cinder/CinderImGui.h"
-     #define HAS_DEBUG_UI
-    namespace ui = ImGui;
+#include "cinder/CinderImGui.h"
+#define HAS_DEBUG_UI
+namespace ui = ImGui;
 #endif
 
 #undef HAS_DEBUG_UI
@@ -28,9 +28,9 @@
 #define FORCE_NVIDIA_CARD_IF_PRESENT
 
 #ifdef FORCE_NVIDIA_CARD_IF_PRESENT
-extern "C" 
+extern "C"
 {
-    __declspec(dllexport) int NvOptimusEnablement = 0x00000001; // This forces Intel GPU / Nvidia card selection
+    __declspec( dllexport ) int NvOptimusEnablement = 0x00000001; // This forces Intel GPU / Nvidia card selection
 }
 #endif
 
@@ -44,11 +44,11 @@ public:
     void update ( ) override;
     void draw ( ) override;
     void fileDrop ( FileDropEvent event ) override;
-    void keyDown( KeyEvent event ) override;
+    void keyDown ( KeyEvent event ) override;
 
 protected:
-    void connectSignals();
-    void loadDefaultVideo();
+    void connectSignals ( );
+    void loadDefaultVideo ( );
 
     AX::Video::MediaWriterRef     _writer;
 
@@ -70,26 +70,26 @@ void SimpleWriteApp::setup ( )
     ui::Initialize ( );
 #endif
 
-  
-    console() << gl::getString(GL_RENDERER) << std::endl;
-    console() << gl::getString(GL_VERSION) << std::endl;
 
-    loadDefaultVideo();
+    console ( ) << gl::getString ( GL_RENDERER ) << std::endl;
+    console ( ) << gl::getString ( GL_VERSION ) << std::endl;
+
+    loadDefaultVideo ( );
 }
 
-void SimpleWriteApp::loadDefaultVideo()
+void SimpleWriteApp::loadDefaultVideo ( )
 {
-    auto fmt = AX::Video::MediaPlayer::Format().HardwareAccelerated( _hardwareAccelerated );
-    _player = AX::Video::MediaPlayer::Create( CINDER_PATH "/samples/QuickTimeBasic/assets/bbb.mp4", fmt );
-    connectSignals();
+    auto fmt = AX::Video::MediaPlayer::Format ( ).HardwareAccelerated ( _hardwareAccelerated );
+    _player = AX::Video::MediaPlayer::Create ( CINDER_PATH "/samples/QuickTimeBasic/assets/bbb.mp4", fmt );
+    connectSignals ( );
     //_player->Play();
 }
 
-void SimpleWriteApp::keyDown( KeyEvent event )
+void SimpleWriteApp::keyDown ( KeyEvent event )
 {
-    if( event.getChar() == 'r' )
+    if (event.getChar ( ) == 'r')
     {
-        loadDefaultVideo();
+        loadDefaultVideo ( );
     }
 }
 
@@ -99,67 +99,67 @@ void SimpleWriteApp::fileDrop ( FileDropEvent event )
 
     auto fmt = AX::Video::MediaPlayer::Format ( ).HardwareAccelerated ( _hardwareAccelerated );
     _player = AX::Video::MediaPlayer::Create ( loadFile ( event.getFile ( 0 ) ), fmt );
-    connectSignals();
+    connectSignals ( );
     _player->Play ( );
 }
 
-void SimpleWriteApp::connectSignals()
+void SimpleWriteApp::connectSignals ( )
 {
-    _player->OnSeekStart.connect( [=] { std::cout << "OnSeekStart\n"; } );
-    _player->OnSeekEnd.connect( [=] { std::cout << "OnSeekEnd\n"; } );
-    _player->OnComplete.connect( [=] 
-        { 
+    _player->OnSeekStart.connect ( [=] { std::cout << "OnSeekStart\n"; } );
+    _player->OnSeekEnd.connect ( [=] { std::cout << "OnSeekEnd\n"; } );
+    _player->OnComplete.connect ( [=]
+        {
             std::cout << "OnComplete\n";
-            _writer->finalize();
+            _writer->finalize ( );
         } );
-    _player->OnReady.connect( [=] 
-        { 
-            std::cout << "OnReady: " << _player->GetDurationInSeconds() << std::endl; 
+    _player->OnReady.connect ( [=]
+        {
+            std::cout << "OnReady: " << _player->GetDurationInSeconds ( ) << std::endl;
 
-            _fbo = ci::gl::Fbo::create(_player->GetSize().x, _player->GetSize().y, ci::gl::Fbo::Format().disableDepth());
+            _fbo = ci::gl::Fbo::create ( _player->GetSize ( ).x, _player->GetSize ( ).y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
             //_fbo->getColorTexture()->setTopDown(false); // Flip the y axis.
 
-            _writer = AX::Video::MediaWriter::Create(_player->GetSize());
+            _writer = AX::Video::MediaWriter::Create ( _player->GetSize ( ) );
 
             if (_writer)
             {
-                setWindowSize(_player->GetSize());
-                _player->Play();
+                setWindowSize ( _player->GetSize ( ) );
+                _player->Play ( );
             }
         } );
-    _player->OnError.connect( [=] ( AX::Video::MediaPlayer::Error error ) { _error = error; } );
-    _player->OnBufferingStart.connect( [=] { std::cout << "OnBufferingStart\n"; } );
-    _player->OnBufferingEnd.connect( [=] { std::cout << "OnBufferingEnd\n"; } );
+    _player->OnError.connect ( [=] ( AX::Video::MediaPlayer::Error error ) { _error = error; } );
+    _player->OnBufferingStart.connect ( [=] { std::cout << "OnBufferingStart\n"; } );
+    _player->OnBufferingEnd.connect ( [=] { std::cout << "OnBufferingEnd\n"; } );
 }
 
 void SimpleWriteApp::update ( )
 {
-    if (_player->IsHardwareAccelerated())
+    if (_player->IsHardwareAccelerated ( ))
     {
         // You can still use this method in software rendered mode
         // but it will create a new texture every time it's called
         // even if ::CheckNewFrame() was false. Use the above method 
         // for optimal texture creation in software mode but if you 
         // don't care, this block is functionally identical in both paths
-        if (auto lease = _player->GetTexture())
+        if (auto lease = _player->GetTexture ( ))
         {
             //gl::scale(1, -1, 1);
             // You can now use this texture until `lease` goes out
             // of scope (it will Unlock() the texture when destructing )
             //gl::draw ( *lease, getWindowBounds());
 
-            auto textureRef = lease->ToTexture();
+            auto textureRef = lease->ToTexture ( );
             if (_fbo)
             {
                 {
-                    ci::gl::ScopedFramebuffer scopedFbo(_fbo);
+                    ci::gl::ScopedFramebuffer scopedFbo ( _fbo );
                     ci::gl::ScopedModelMatrix scopedMM;
-                    ci::gl::translate(0.0f, (float)_player->GetSize().y, 0.0f);
-                    ci::gl::scale(1.0f, -1.0f, 1.0f);
-                    ci::gl::draw(textureRef);
+                    ci::gl::translate ( 0.0f, ( float ) _player->GetSize ( ).y, 0.0f );
+                    ci::gl::scale ( 1.0f, -1.0f, 1.0f );
+                    ci::gl::draw ( textureRef );
                 }
 
-                _writer->write(_fbo, _player->GetSize());
+                _writer->write ( _fbo, _player->GetSize ( ) );
             }
         }
     }
@@ -168,7 +168,7 @@ void SimpleWriteApp::update ( )
 #ifdef HAS_DEBUG_UI
 struct ScopedWindow2
 {
-    ScopedWindow2 ( const char * title, uint32_t flags )
+    ScopedWindow2 ( const char* title, uint32_t flags )
     {
         ui::Begin ( title, nullptr, flags );
     }
@@ -189,76 +189,76 @@ void SimpleWriteApp::draw ( )
         ScopedWindow2 window{ "Settings", ImGuiWindowFlags_AlwaysAutoResize };
 
         ui::Checkbox ( "Use H/W Acceleration", &_hardwareAccelerated );
-        if ( _error != AX::Video::MediaPlayer::Error::NoError )
+        if (_error != AX::Video::MediaPlayer::Error::NoError)
         {
             ui::TextColored ( ImVec4 ( 0.8f, 0.1f, 0.1f, 1.0f ), "Error: %s", AX::Video::MediaPlayer::ErrorToString ( _error ).c_str ( ) );
             return;
         }
 
-        if ( !_player ) return;
+        if (!_player) return;
 
         float position = _player->GetPositionInSeconds ( );
         float duration = _player->GetDurationInSeconds ( );
         float percent = position / duration;
 
         ui::Text ( "%.2f FPS", getAverageFps ( ) );
-        ui::Text ( "Hardware Accelerated: %s, HasAudio: %s, HasVideo : %s", _player->IsHardwareAccelerated() ? "true" : "false", _player->HasAudio ( ) ? "true" : "false", _player->HasVideo ( ) ? "true" : "false" );
+        ui::Text ( "Hardware Accelerated: %s, HasAudio: %s, HasVideo : %s", _player->IsHardwareAccelerated ( ) ? "true" : "false", _player->HasAudio ( ) ? "true" : "false", _player->HasVideo ( ) ? "true" : "false" );
 
         ui::Checkbox ( "Approximate Seeking", &_approximateSeeking );
-        if ( ui::SliderFloat ( "Seek", &percent, 0.0f, 1.0f ) )
+        if (ui::SliderFloat ( "Seek", &percent, 0.0f, 1.0f ))
         {
             _player->SeekToPercentage ( percent, _approximateSeeking );
         }
 
         float rate = _player->GetPlaybackRate ( );
-        if ( ui::SliderFloat ( "Playback Rate", &rate, -2.5f, 2.5f ) )
+        if (ui::SliderFloat ( "Playback Rate", &rate, -2.5f, 2.5f ))
         {
             _player->SetPlaybackRate ( rate );
         }
 
-        if ( _player->IsPaused ( ) )
+        if (_player->IsPaused ( ))
         {
-            if ( ui::Button ( "Play" ) )
+            if (ui::Button ( "Play" ))
             {
                 _player->Play ( );
             }
         }
-        else if ( _player->IsPlaying ( ) )
+        else if (_player->IsPlaying ( ))
         {
-            if ( ui::Button ( "Pause" ) )
+            if (ui::Button ( "Pause" ))
             {
                 _player->Pause ( );
             }
         }
 
         ui::SameLine ( );
-        if ( ui::Button ( "Toggle" ) ) _player->TogglePlayback ( );
-        
+        if (ui::Button ( "Toggle" )) _player->TogglePlayback ( );
+
         ui::SameLine ( );
         bool loop = _player->IsLooping ( );
-        if ( ui::Checkbox ( "Loop", &loop ) ) _player->SetLoop ( loop );
+        if (ui::Checkbox ( "Loop", &loop )) _player->SetLoop ( loop );
 
         ui::SameLine ( );
         bool mute = _player->IsMuted ( );
-        if ( ui::Checkbox ( "Mute", &mute ) ) _player->SetMuted ( mute );
+        if (ui::Checkbox ( "Mute", &mute )) _player->SetMuted ( mute );
 
-        if ( !mute )
+        if (!mute)
         {
             float volume = _player->GetVolume ( );
-            if ( ui::DragFloat ( "Volume", &volume, 0.01f, 0.0f, 1.0f ) )
+            if (ui::DragFloat ( "Volume", &volume, 0.01f, 0.0f, 1.0f ))
             {
                 _player->SetVolume ( volume );
             }
         }
     }
 #endif
-    auto s = std::to_string((_player->GetPositionInSeconds() / _player->GetDurationInSeconds()) * 100) + "%";
-    ci::gl::drawStringCentered(s, ci::app::getWindowCenter());
+    auto s = std::to_string ( ( _player->GetPositionInSeconds ( ) / _player->GetDurationInSeconds ( ) ) * 100 ) + "%";
+    ci::gl::drawStringCentered ( s, ci::app::getWindowCenter ( ) );
 
-    if ( _player->CheckNewFrame ( ) )
+    if (_player->CheckNewFrame ( ))
     {
         // Only true if using the CPU render path
-        if ( auto surface = _player->GetSurface ( ) )
+        if (auto surface = _player->GetSurface ( ))
         {
             _texture = *_player->GetTexture ( );
         }
@@ -269,8 +269,8 @@ void SimpleWriteApp::draw ( )
     {
         // You can still use this method in software rendered mode
         // but it will create a new texture every time it's called
-        // even if ::CheckNewFrame() was false. Use the above method 
-        // for optimal texture creation in software mode but if you 
+        // even if ::CheckNewFrame() was false. Use the above method
+        // for optimal texture creation in software mode but if you
         // don't care, this block is functionally identical in both paths
         if (auto lease = _player->GetTexture())
         {
@@ -286,7 +286,7 @@ void SimpleWriteApp::draw ( )
                     ci::gl::ScopedFramebuffer scopedFbo(_fbo);
                     ci::gl::draw(textureRef);
                 }
-            
+
                 //_writer->copyPixels(lease->ToTexture(), _player->GetSize());
                 _writer->write(_fbo, _player->GetSize());
             }
@@ -302,11 +302,11 @@ void SimpleWriteApp::draw ( )
     */
 }
 
-void Init ( App::Settings * settings )
+void Init ( App::Settings* settings )
 {
 #ifdef CINDER_MSW
     settings->setConsoleWindowEnabled ( );
 #endif
 }
 
-CINDER_APP ( SimpleWriteApp, RendererGl ( RendererGl::Options() ), Init );
+CINDER_APP ( SimpleWriteApp, RendererGl ( RendererGl::Options ( ) ), Init );
