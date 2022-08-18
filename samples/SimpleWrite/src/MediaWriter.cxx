@@ -9,7 +9,7 @@ namespace AX::Video
 
     MediaWriter::MediaWriter(const glm::ivec2& size) : _pSinkWriter(nullptr, [this](IMFSinkWriter* sw) { mfSafeRelease(&sw); })
     {
-        _videoFrameBuffer.resize(size.x * size.y);//VIDEO_PELS);
+        _videoFrameBuffer.resize(size.x * size.y);
         _videoFrameBuffer.clear();
 
         HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
@@ -47,52 +47,6 @@ namespace AX::Video
         MFShutdown();
         CoUninitialize();
     }
-    /*
-    HRESULT MediaWriter::setupWriter(const glm::ivec2& size)
-    {
-        std::cout << "width: " << size.x << " ";
-        std::cout << "height: " << size.y << "\n";
-        //videoFrameBuffer = new DWORD[VIDEO_PELS];
-        _videoFrameBuffer.resize(size.x * size.y);//VIDEO_PELS);
-        _videoFrameBuffer.clear();
-
-        //glGenBuffers(1, &_pbo);
-        //glBindBuffer(GL_PIXEL_PACK_BUFFER, _pbo);
-        //glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)0);// offset in bytes into "buffer", // not pointer to client memory!
-
-
-        HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-        if (SUCCEEDED(hr))
-        {
-            hr = MFStartup(MF_VERSION);
-            if (SUCCEEDED(hr))
-            {
-                hr = initializeSinkWriter(&_pSinkWriter.get(), &_stream, size);
-            }
-        }
-
-        if (SUCCEEDED(hr))
-        {
-            _rtStart = 0;
-        }
-
-        return hr;
-    }
-    */
-    /*
-    HRESULT MediaWriter::finalizeAndReleaseWriter()
-    {
-        HRESULT hr = _pSinkWriter->Finalize();
-        //SafeRelease(&_pSinkWriter);
-
-        MFShutdown();
-        CoUninitialize();
-
-        return hr;
-    }
-    */
-    //HRESULT MediaWriter::copyPixels(cinder::gl::Texture2dRef lease, const glm::ivec2 size)
-    //HRESULT MediaWriter::write(MediaPlayer::FrameLease* lease, const glm::ivec2 size)
     bool MediaWriter::write(ci::gl::FboRef fbo, const glm::ivec2& size)
     {
         if (!_isReady)
@@ -102,16 +56,7 @@ namespace AX::Video
 
         if (_pSinkWriter)
         {
-            //glReadnPixels(0, 0, size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, (size.x * size.y) * sizeof(DWORD), _videoFrameBuffer.data());
             auto surface = fbo->readPixels8u(fbo->getBounds());
-            //glBindTexture(GL_TEXTURE_2D, textureRef->getId());
-            //glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (BYTE*)_videoFrameBuffer.data());
-            //glGetTextureImage(textureRef->getId(), 0, GL_RGBA, GL_UNSIGNED_BYTE, (size.x * size.y) * sizeof(DWORD), _videoFrameBuffer.data());
-            //BYTE* buffer = (BYTE*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-
-            //hr = writeFrame(_pSinkWriter, _stream, _rtStart, size, _videoFrameDuration, (BYTE*)_videoFrameBuffer.data());// timeSinceLastDraw);
-            //hr = writeFrame(_pSinkWriter, _stream, _rtStart, size, _videoFrameDuration, buffer);// timeSinceLastDraw);
-            //std::shared_ptr<BYTE> p(surface.getData());
             hr = writeFrame(_pSinkWriter, _stream, _rtStart, size, _videoFrameDuration, surface.getData());// timeSinceLastDraw);
             if (!SUCCEEDED(hr))
             {
@@ -127,11 +72,9 @@ namespace AX::Video
 
     HRESULT MediaWriter::initializeSinkWriter(std::unique_ptr<IMFSinkWriter, std::function<void(IMFSinkWriter*)>>& ppWriter, DWORD& pStreamIndex, const glm::ivec2& size)
     {
-        //*ppWriter = NULL;
         ppWriter.reset();
         pStreamIndex = NULL;
 
-        //IMFSinkWriter* pSinkWriter = NULL;
         std::unique_ptr<IMFSinkWriter, std::function<void(IMFSinkWriter*)>> pSinkWriter(nullptr, [this](IMFSinkWriter* sw) { mfSafeRelease(&sw); });
         std::unique_ptr<IMFMediaType, std::function<void(IMFMediaType*)>> pMediaTypeOut(nullptr, [this](IMFMediaType* mt) { mfSafeRelease(&mt); });
         std::unique_ptr<IMFMediaType, std::function<void(IMFMediaType*)>> pMediaTypeIn(nullptr, [this](IMFMediaType* mt) { mfSafeRelease(&mt); });
@@ -143,13 +86,11 @@ namespace AX::Video
         int fps = 30;
         UINT32 video_bitrate = 0;
 
-        //auto ppMediaReader = pMediaReader.get();
         IMFSourceReader* ppMediaReader;
         HRESULT hr = MFCreateSourceReaderFromURL(L"bbb.mp4", NULL, &ppMediaReader);
         pMediaReader.reset(ppMediaReader);
         if (SUCCEEDED(hr))
         {
-            //auto ppMediaType = pMediaType.get();
             IMFMediaType* ppMediaType;
             hr = pMediaReader->GetCurrentMediaType(1, &ppMediaType);
             pMediaType.reset(ppMediaType);
@@ -171,7 +112,6 @@ namespace AX::Video
 
         if (SUCCEEDED(hr))
         {
-            //auto p = pSinkWriter.get();
             IMFSinkWriter* p;
             hr = MFCreateSinkWriterFromURL(L"bbb_copy.mp4", NULL, NULL, &p);
             pSinkWriter.reset(p);
@@ -180,7 +120,6 @@ namespace AX::Video
         // Set the output media type.
         if (SUCCEEDED(hr))
         {
-            //auto p = pMediaTypeOut.get();
             IMFMediaType* p;
             hr = MFCreateMediaType(&p);
             pMediaTypeOut.reset(p);
@@ -221,7 +160,6 @@ namespace AX::Video
         // Set the input media type.
         if (SUCCEEDED(hr))
         {
-            //auto p = pMediaTypeIn.get();
             IMFMediaType* p;
             hr = MFCreateMediaType(&p);
             pMediaTypeIn.reset(p);
@@ -270,22 +208,10 @@ namespace AX::Video
         if (SUCCEEDED(hr))
         {
             std::cout << "sink writer initialized\n";
-            //*ppWriter = pSinkWriter;
             ppWriter = std::move(pSinkWriter);
             ppWriter.get()->AddRef();
             pStreamIndex = streamIndex;
         }
-
-        //SafeRelease(&pSinkWriter);
-        //SafeRelease(&pMediaTypeOut);
-        //SafeRelease(&pMediaTypeIn);
-        //SafeRelease(&pMediaType);
-        //SafeRelease(&pMediaReader);
-        //pMediaType.reset();
-        //pMediaTypeIn.reset();
-        //pMediaTypeOut.reset();
-        //pMediaReader.reset();
-        //pSinkWriter.reset();
 
         return hr;
     }
@@ -296,7 +222,6 @@ namespace AX::Video
         const LONGLONG& rtStart,        // Time stamp.
         const glm::ivec2& size,
         const LONGLONG& frameDuration,
-        //std::shared_ptr<BYTE> &videoBuffer
         BYTE* videoBuffer
     )
     {
@@ -310,27 +235,23 @@ namespace AX::Video
         BYTE* pData;
 
         // Create a new memory buffer.
-        //auto p = pBuffer.get();
         IMFMediaBuffer* ppBuffer;
         HRESULT hr = MFCreateMemoryBuffer(cbBuffer, &ppBuffer);
         pBuffer.reset(ppBuffer);
         // Lock the buffer and copy the video frame to the buffer.
         if (SUCCEEDED(hr))
         {
-            //auto p = pData.get();
-            //BYTE* p;
             hr = pBuffer->Lock(&pData, NULL, NULL);
-            //pData.reset(p);
         }
         if (SUCCEEDED(hr))
         {
             hr = MFCopyImage(
-                pData,                      // Destination buffer.
-                cbWidth,                    // Destination stride.
-                videoBuffer,//.get(),    // First row in source image.
-                cbWidth,                    // Source stride.
-                cbWidth,                    // Image width in bytes.
-                size.y//VIDEO_HEIGHT                // Image height in pixels.
+                pData,          // Destination buffer.
+                cbWidth,        // Destination stride.
+                videoBuffer,    // First row in source image.
+                cbWidth,        // Source stride.
+                cbWidth,        // Image width in bytes.
+                size.y          // Image height in pixels.
             );
         }
         if (pBuffer)
@@ -346,7 +267,6 @@ namespace AX::Video
         // Create a media sample and add the buffer to the sample.
         if (SUCCEEDED(hr))
         {
-            //auto p = pSample.get();
             IMFSample* ppSample;
             hr = MFCreateSample(&ppSample);
             pSample.reset(ppSample);
@@ -362,7 +282,7 @@ namespace AX::Video
         }
         if (SUCCEEDED(hr))
         {
-            hr = pSample->SetSampleDuration(frameDuration);// VIDEO_FRAME_DURATION);
+            hr = pSample->SetSampleDuration(frameDuration);
         }
 
         // Send the sample to the Sink Writer.
@@ -371,8 +291,6 @@ namespace AX::Video
             hr = pWriter->WriteSample(streamIndex, pSample.get());
         }
 
-        //SafeRelease(&pSample);
-        //SafeRelease(&pBuffer);
         pSample.reset();
         pBuffer.reset();
 

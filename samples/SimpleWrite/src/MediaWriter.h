@@ -21,17 +21,11 @@ namespace AX::Video
         MediaWriter(const glm::ivec2& size);
         ~MediaWriter();
 
-// put in constructor        HRESULT setupWriter(const glm::ivec2& size);
-        //HRESULT copyPixels(cinder::gl::TextureRef, const glm::ivec2 size);
-        //HRESULT write(MediaPlayer::FrameLease* lease, const glm::ivec2 size);
         bool write(ci::gl::FboRef fbo, const ci::ivec2 &size);
         bool finalize();
-// put in destructor        HRESULT finalizeAndReleaseWriter();
     protected:
         HRESULT initializeSinkWriter(std::unique_ptr<IMFSinkWriter, std::function<void(IMFSinkWriter*)>> &ppWriter, DWORD& pStreamIndex, const glm::ivec2& size);
         HRESULT writeFrame(std::unique_ptr<IMFSinkWriter, std::function<void(IMFSinkWriter*)>>& pWriter, DWORD streamIndex, const LONGLONG& rtStart, const glm::ivec2& size, const LONGLONG& frameDuration, BYTE* videoBuffer);// std::shared_ptr<BYTE>& videoBuffer);
-        //GLuint _pbo;
-        //IMFSinkWriter* _pSinkWriter = NULL;
         std::unique_ptr<IMFSinkWriter, std::function<void(IMFSinkWriter*)>> _pSinkWriter;
         DWORD _stream = -1;
         LONGLONG _rtStart = 0;
