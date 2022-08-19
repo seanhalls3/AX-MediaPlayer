@@ -18,18 +18,21 @@ namespace AX::Video
             hr = MFStartup ( MF_VERSION );
             if (SUCCEEDED ( hr ))
             {
-                hr = initializeSinkWriter ( _pSinkWriter, _stream, size );
+                //hr = initializeSinkWriter ( _pSinkWriter, _stream, size );
+                hr = InitializeSinkWriter ( size );
             }
         }
 
         if (SUCCEEDED ( hr ))
         {
+            _fbo = ci::gl::Fbo::create ( size.x, size.y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
+
             _rtStart = 0;
             _isReady = true;
         }
     }
 
-    bool MediaWriter::finalize ( )
+    bool MediaWriter::Finalize ( )
     {
         HRESULT hr = E_FAIL;
 
@@ -47,17 +50,28 @@ namespace AX::Video
         MFShutdown ( );
         CoUninitialize ( );
     }
-    bool MediaWriter::write ( ci::gl::FboRef fbo, const ci::ivec2& size )
+
+    //bool MediaWriter::write ( ci::gl::FboRef fbo, const ci::ivec2& size )
+    bool MediaWriter::Write ( ci::gl::TextureRef textureRef, const ci::ivec2& size, bool flip )
     {
         if (!_isReady)
             return false;
 
         HRESULT hr = E_FAIL;
 
-        if (_pSinkWriter)
+        if (_pSinkWriter && _fbo)
         {
-            auto surface = fbo->readPixels8u ( fbo->getBounds ( ) );
-            hr = writeFrame ( _pSinkWriter, _stream, _rtStart, size, _videoFrameDuration, surface.getData ( ) );// timeSinceLastDraw);
+            if ( flip )
+            {
+                ci::gl::ScopedFramebuffer scopedFbo ( _fbo );
+                ci::gl::ScopedModelMatrix scopedMM;
+                ci::gl::translate ( 0.0f, ( float ) size.y, 0.0f );
+                ci::gl::scale ( 1.0f, -1.0f, 1.0f );
+                ci::gl::draw ( textureRef );
+            }
+            auto surface = _fbo->readPixels8u ( _fbo->getBounds ( ) );
+            //hr = writeFrame ( _pSinkWriter, _stream, _rtStart, size, _videoFrameDuration, surface.getData ( ) );// timeSinceLastDraw);
+            hr = WriteFrame ( size, surface.getData ( ) );// timeSinceLastDraw);
             if (!SUCCEEDED ( hr ))
             {
                 std::cout << "error on write\n";
@@ -71,10 +85,11 @@ namespace AX::Video
     }
 
 //    HRESULT MediaWriter::initializeSinkWriter ( std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& ppWriter, DWORD& pStreamIndex, const ci::ivec2& size )
-    HRESULT MediaWriter::initializeSinkWriter ( std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& ppWriter, DWORD& pStreamIndex, const ci::ivec2& size )
+    HRESULT MediaWriter::InitializeSinkWriter ( const ci::ivec2& size )
     {
-        ppWriter.reset ( );
-        pStreamIndex = NULL;
+        //ppWriter.reset ( );
+        //pStreamIndex = NULL;
+        _stream = -1;
 
         std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>> pSinkWriter ( nullptr, [this] ( IMFSinkWriter* sw ) { mfSafeRelease ( &sw ); } );
         std::unique_ptr<IMFMediaType, std::function<void ( IMFMediaType* )>> pMediaTypeOut ( nullptr, [this] ( IMFMediaType* mt ) { mfSafeRelease ( &mt ); } );
@@ -202,27 +217,29 @@ namespace AX::Video
 
         if (hr == MF_E_TOPO_CODEC_NOT_FOUND)
         {
-            std::cout << "no codec\n";
+            std::cout << "codec not found\n";
         }
 
         // Return the pointer to the caller.
         if (SUCCEEDED ( hr ))
         {
-            std::cout << "sink writer initialized\n";
-            ppWriter = std::move ( pSinkWriter );
-            ppWriter.get ( )->AddRef ( );
-            pStreamIndex = streamIndex;
+            //ppWriter = std::move ( pSinkWriter );
+            _pSinkWriter = std::move ( pSinkWriter );
+            //ppWriter.get ( )->AddRef ( );
+            _pSinkWriter.get ( )->AddRef ( );
+            //pStreamIndex = streamIndex;
+            _stream = streamIndex;
         }
 
         return hr;
     }
 
-    HRESULT MediaWriter::writeFrame (
-        std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& pWriter,
-        DWORD streamIndex,
-        const LONGLONG& rtStart,        // Time stamp.
+    HRESULT MediaWriter::WriteFrame (
+//        std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& pWriter,
+//        DWORD streamIndex,
+//        const LONGLONG& rtStart,        // Time stamp.
         const ci::ivec2& size,
-        const LONGLONG& frameDuration,
+//        const LONGLONG& frameDuration,
         BYTE* videoBuffer
     )
     {
@@ -279,17 +296,17 @@ namespace AX::Video
         // Set the time stamp and the duration.
         if (SUCCEEDED ( hr ))
         {
-            hr = pSample->SetSampleTime ( rtStart );
+            hr = pSample->SetSampleTime ( _rtStart );
         }
         if (SUCCEEDED ( hr ))
         {
-            hr = pSample->SetSampleDuration ( frameDuration );
+            hr = pSample->SetSampleDuration ( _videoFrameDuration );
         }
 
         // Send the sample to the Sink Writer.
         if (SUCCEEDED ( hr ))
         {
-            hr = pWriter->WriteSample ( streamIndex, pSample.get ( ) );
+            hr = _pSinkWriter->WriteSample ( _stream, pSample.get ( ) );
         }
 
         pSample.reset ( );

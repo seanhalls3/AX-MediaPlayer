@@ -59,7 +59,7 @@ protected:
     bool _approximateSeeking{ true };
     gl::TextureRef _texture;
 
-    ci::gl::FboRef _fbo;
+    //ci::gl::FboRef _fbo;
 
 
 };
@@ -109,7 +109,7 @@ void SimpleWriteApp::connectSignals ( )
     _player->OnComplete.connect ( [=]
         {
             std::cout << "OnComplete\n";
-            _writer->finalize ( );
+            _writer->Finalize ( );
             std::this_thread::sleep_for ( std::chrono::seconds ( 1 ) );
             app:quit ( );
         } );
@@ -117,7 +117,7 @@ void SimpleWriteApp::connectSignals ( )
         {
             std::cout << "OnReady: " << _player->GetDurationInSeconds ( ) << std::endl;
 
-            _fbo = ci::gl::Fbo::create ( _player->GetSize ( ).x, _player->GetSize ( ).y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
+            //_fbo = ci::gl::Fbo::create ( _player->GetSize ( ).x, _player->GetSize ( ).y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
 
             _writer = AX::Video::MediaWriter::Create ( _player->GetSize ( ) );
 
@@ -149,18 +149,21 @@ void SimpleWriteApp::update ( )
             //gl::draw ( *lease, getWindowBounds());
 
             auto textureRef = lease->ToTexture ( );
-            if (_fbo)
-            {
-                {
-                    ci::gl::ScopedFramebuffer scopedFbo ( _fbo );
-                    ci::gl::ScopedModelMatrix scopedMM;
-                    ci::gl::translate ( 0.0f, ( float ) _player->GetSize ( ).y, 0.0f );
-                    ci::gl::scale ( 1.0f, -1.0f, 1.0f );
-                    ci::gl::draw ( textureRef );
-                }
+            //if (_fbo)
+            //{
+            //{
+                //ci::gl::ScopedFramebuffer scopedFbo ( _fbo );
+                //ci::gl::ScopedModelMatrix scopedMM;
+                //ci::gl::translate ( 0.0f, ( float ) _player->GetSize ( ).y, 0.0f );
+                //ci::gl::scale ( 1.0f, -1.0f, 1.0f );
+                //ci::gl::draw ( textureRef );
+            //}
 
-                _writer->write ( _fbo, _player->GetSize ( ) );
+            if (_writer)
+            {
+                _writer->Write ( textureRef, _player->GetSize ( ) );
             }
+            //}
         }
     }
 }
