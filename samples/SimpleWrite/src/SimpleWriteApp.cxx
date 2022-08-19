@@ -110,6 +110,8 @@ void SimpleWriteApp::connectSignals ( )
         {
             std::cout << "OnComplete\n";
             _writer->finalize ( );
+            std::this_thread::sleep_for ( std::chrono::seconds ( 1 ) );
+            app:quit ( );
         } );
     _player->OnReady.connect ( [=]
         {

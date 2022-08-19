@@ -70,6 +70,7 @@ namespace AX::Video
         return SUCCEEDED ( hr );
     }
 
+//    HRESULT MediaWriter::initializeSinkWriter ( std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& ppWriter, DWORD& pStreamIndex, const ci::ivec2& size )
     HRESULT MediaWriter::initializeSinkWriter ( std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& ppWriter, DWORD& pStreamIndex, const ci::ivec2& size )
     {
         ppWriter.reset ( );
