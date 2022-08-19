@@ -139,7 +139,7 @@ void SimpleWriteApp::update ( )
 
             if ( _writer )
             {
-                _writer->Write ( textureRef );
+                _writer->Write ( textureRef, false );
             }
         }
     }

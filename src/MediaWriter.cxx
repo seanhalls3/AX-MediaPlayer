@@ -66,12 +66,14 @@ namespace AX::Video
 
         if ( _pSinkWriter && _fbo )
         {
-            if ( flip )
             {
                 ci::gl::ScopedFramebuffer scopedFbo ( _fbo );
                 ci::gl::ScopedModelMatrix scopedMM;
-                ci::gl::translate ( 0.0f, ( float ) _size.y, 0.0f );
-                ci::gl::scale ( 1.0f, -1.0f, 1.0f );
+                if ( flip )
+                {
+                    ci::gl::translate ( 0.0f, ( float ) _size.y, 0.0f );
+                    ci::gl::scale ( 1.0f, -1.0f, 1.0f );
+                }
                 ci::gl::draw ( textureRef );
             }
             auto surface = _fbo->readPixels8u ( _fbo->getBounds ( ) );
