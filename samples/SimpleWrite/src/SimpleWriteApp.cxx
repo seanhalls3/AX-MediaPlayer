@@ -43,8 +43,6 @@ public:
     void setup ( ) override;
     void update ( ) override;
     void draw ( ) override;
-    void fileDrop ( FileDropEvent event ) override;
-    void keyDown ( KeyEvent event ) override;
 
 protected:
     void connectSignals ( );
@@ -56,7 +54,6 @@ protected:
     AX::Video::MediaPlayer::Error _error{ AX::Video::MediaPlayer::Error::NoError };
 
     bool _hardwareAccelerated{ true };
-    bool _approximateSeeking{ true };
     gl::TextureRef _texture;
 
 };
@@ -80,23 +77,6 @@ void SimpleWriteApp::loadDefaultVideo ( )
     connectSignals ( );
 }
 
-void SimpleWriteApp::keyDown ( KeyEvent event )
-{
-    if ( event.getChar ( ) == 'r' )
-    {
-        loadDefaultVideo ( );
-    }
-}
-
-void SimpleWriteApp::fileDrop ( FileDropEvent event )
-{
-    _error = AX::Video::MediaPlayer::Error::NoError;
-
-    auto fmt = AX::Video::MediaPlayer::Format ( ).HardwareAccelerated ( _hardwareAccelerated );
-    _player = AX::Video::MediaPlayer::Create ( loadFile ( event.getFile ( 0 ) ), fmt );
-    connectSignals ( );
-    _player->Play ( );
-}
 
 void SimpleWriteApp::connectSignals ( )
 {
@@ -105,6 +85,7 @@ void SimpleWriteApp::connectSignals ( )
     _player->OnComplete.connect ( [=]
         {
             std::cout << "OnComplete\n";
+
             _writer->Finalize ( );
             std::this_thread::sleep_for ( std::chrono::seconds ( 1 ) );
             app:quit ( );
@@ -112,7 +93,7 @@ void SimpleWriteApp::connectSignals ( )
     _player->OnReady.connect ( [=]
         {
             std::cout << "OnReady: " << _player->GetDurationInSeconds ( ) << std::endl;
-            // \samples\AX-MediaPlayer\samples\SimpleWrite
+
             _writer = AX::Video::MediaWriter::Create ( CINDER_PATH "/samples/AX-MediaPlayer/samples/SimpleWrite/build/bbb_copy.mp4", _player->GetSize ( ), _player->GetBitrate ( ), _player->GetFps( ) );
             if ( _writer )
             {
