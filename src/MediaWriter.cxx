@@ -18,7 +18,6 @@ namespace AX::Video
             hr = MFStartup ( MF_VERSION );
             if (SUCCEEDED ( hr ))
             {
-                //hr = initializeSinkWriter ( _pSinkWriter, _stream, size );
                 hr = InitializeSinkWriter ( size );
             }
         }
@@ -51,7 +50,6 @@ namespace AX::Video
         CoUninitialize ( );
     }
 
-    //bool MediaWriter::write ( ci::gl::FboRef fbo, const ci::ivec2& size )
     bool MediaWriter::Write ( ci::gl::TextureRef textureRef, const ci::ivec2& size, bool flip )
     {
         if (!_isReady)
@@ -70,11 +68,10 @@ namespace AX::Video
                 ci::gl::draw ( textureRef );
             }
             auto surface = _fbo->readPixels8u ( _fbo->getBounds ( ) );
-            //hr = writeFrame ( _pSinkWriter, _stream, _rtStart, size, _videoFrameDuration, surface.getData ( ) );// timeSinceLastDraw);
-            hr = WriteFrame ( size, surface.getData ( ) );// timeSinceLastDraw);
+            hr = WriteFrame ( size, surface.getData ( ) );
             if (!SUCCEEDED ( hr ))
             {
-                std::cout << "error on write\n";
+                ci::app::console ( ) << "error on write" << std::endl;
                 return false;
             }
             _rtStart += _videoFrameDuration;
@@ -84,17 +81,14 @@ namespace AX::Video
         return SUCCEEDED ( hr );
     }
 
-//    HRESULT MediaWriter::initializeSinkWriter ( std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& ppWriter, DWORD& pStreamIndex, const ci::ivec2& size )
     HRESULT MediaWriter::InitializeSinkWriter ( const ci::ivec2& size )
     {
-        //ppWriter.reset ( );
-        //pStreamIndex = NULL;
         _stream = -1;
 
         std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>> pSinkWriter ( nullptr, [this] ( IMFSinkWriter* sw ) { mfSafeRelease ( &sw ); } );
         std::unique_ptr<IMFMediaType, std::function<void ( IMFMediaType* )>> pMediaTypeOut ( nullptr, [this] ( IMFMediaType* mt ) { mfSafeRelease ( &mt ); } );
         std::unique_ptr<IMFMediaType, std::function<void ( IMFMediaType* )>> pMediaTypeIn ( nullptr, [this] ( IMFMediaType* mt ) { mfSafeRelease ( &mt ); } );
-        DWORD           streamIndex;
+        DWORD streamIndex;
 
         std::unique_ptr<IMFSourceReader, std::function<void ( IMFSourceReader* )>> pMediaReader ( nullptr, [this] ( IMFSourceReader* sr ) { mfSafeRelease ( &sr ); } );
         std::unique_ptr<IMFMediaType, std::function<void ( IMFMediaType* )>> pMediaType ( nullptr, [this] ( IMFMediaType* mt ) { mfSafeRelease ( &mt ); } );
@@ -122,7 +116,7 @@ namespace AX::Video
                 }
 
                 video_bitrate = MFGetAttributeUINT32 ( pMediaType.get ( ), MF_MT_AVG_BITRATE, 0 );
-                std::cout << "video_bitrate: " << video_bitrate << "\n";
+                ci::app::console ( ) << "video_bitrate: " << video_bitrate << std::endl;
             }
         }
 
@@ -217,45 +211,35 @@ namespace AX::Video
 
         if (hr == MF_E_TOPO_CODEC_NOT_FOUND)
         {
-            std::cout << "codec not found\n";
+            ci::app::console ( ) << "codec not found" << std::endl;
         }
 
         // Return the pointer to the caller.
         if (SUCCEEDED ( hr ))
         {
-            //ppWriter = std::move ( pSinkWriter );
             _pSinkWriter = std::move ( pSinkWriter );
-            //ppWriter.get ( )->AddRef ( );
             _pSinkWriter.get ( )->AddRef ( );
-            //pStreamIndex = streamIndex;
             _stream = streamIndex;
         }
 
         return hr;
     }
 
-    HRESULT MediaWriter::WriteFrame (
-//        std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>>& pWriter,
-//        DWORD streamIndex,
-//        const LONGLONG& rtStart,        // Time stamp.
-        const ci::ivec2& size,
-//        const LONGLONG& frameDuration,
-        BYTE* videoBuffer
-    )
+    HRESULT MediaWriter::WriteFrame ( const ci::ivec2& size, BYTE* videoBuffer )
     {
         std::unique_ptr<IMFSample, std::function<void ( IMFSample* )>> pSample ( nullptr, [this] ( IMFSample* s ) { mfSafeRelease ( &s ); } );
         std::unique_ptr<IMFMediaBuffer, std::function<void ( IMFMediaBuffer* )>> pBuffer ( nullptr, [this] ( IMFMediaBuffer* mb ) { mfSafeRelease ( &mb ); } );
 
-        const LONG cbWidth = 4 * size.x;//VIDEO_WIDTH;
-        const DWORD cbBuffer = cbWidth * size.y;//VIDEO_HEIGHT;
+        const LONG cbWidth = 4 * size.x;
+        const DWORD cbBuffer = cbWidth * size.y;
 
-        //std::unique_ptr<BYTE, std::function<void(BYTE*)>> pData(nullptr, [this](BYTE* b) { mfSafeRelease(&b); });
         BYTE* pData;
 
         // Create a new memory buffer.
         IMFMediaBuffer* ppBuffer;
         HRESULT hr = MFCreateMemoryBuffer ( cbBuffer, &ppBuffer );
         pBuffer.reset ( ppBuffer );
+
         // Lock the buffer and copy the video frame to the buffer.
         if (SUCCEEDED ( hr ))
         {

@@ -59,9 +59,6 @@ protected:
     bool _approximateSeeking{ true };
     gl::TextureRef _texture;
 
-    //ci::gl::FboRef _fbo;
-
-
 };
 
 void SimpleWriteApp::setup ( )
@@ -69,7 +66,6 @@ void SimpleWriteApp::setup ( )
 #ifdef HAS_DEBUG_UI
     ui::Initialize ( );
 #endif
-
 
     console ( ) << gl::getString ( GL_RENDERER ) << std::endl;
     console ( ) << gl::getString ( GL_VERSION ) << std::endl;
@@ -117,8 +113,6 @@ void SimpleWriteApp::connectSignals ( )
         {
             std::cout << "OnReady: " << _player->GetDurationInSeconds ( ) << std::endl;
 
-            //_fbo = ci::gl::Fbo::create ( _player->GetSize ( ).x, _player->GetSize ( ).y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
-
             _writer = AX::Video::MediaWriter::Create ( _player->GetSize ( ) );
 
             if (_writer)
@@ -143,27 +137,16 @@ void SimpleWriteApp::update ( )
         // don't care, this block is functionally identical in both paths
         if (auto lease = _player->GetTexture ( ))
         {
-            //gl::scale(1, -1, 1);
             // You can now use this texture until `lease` goes out
             // of scope (it will Unlock() the texture when destructing )
             //gl::draw ( *lease, getWindowBounds());
 
             auto textureRef = lease->ToTexture ( );
-            //if (_fbo)
-            //{
-            //{
-                //ci::gl::ScopedFramebuffer scopedFbo ( _fbo );
-                //ci::gl::ScopedModelMatrix scopedMM;
-                //ci::gl::translate ( 0.0f, ( float ) _player->GetSize ( ).y, 0.0f );
-                //ci::gl::scale ( 1.0f, -1.0f, 1.0f );
-                //ci::gl::draw ( textureRef );
-            //}
 
             if (_writer)
             {
                 _writer->Write ( textureRef, _player->GetSize ( ) );
             }
-            //}
         }
     }
 }
@@ -175,7 +158,7 @@ void SimpleWriteApp::draw ( )
     gl::clear ( Colorf::black ( ) );
 
     auto s = std::to_string ( ( _player->GetPositionInSeconds ( ) / _player->GetDurationInSeconds ( ) ) * 100 ) + "%";
-    ci::gl::drawStringCentered ( s, ci::app::getWindowCenter ( ) );
+    ci::gl::drawStringCentered ( s, ci::app::getWindowCenter ( ), ci::ColorA(1,1,1,1), ci::Font("Arial", 68 ) );
 
     if (_player->CheckNewFrame ( ))
     {
