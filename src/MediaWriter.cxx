@@ -9,7 +9,9 @@ namespace AX::Video
 
     MediaWriter::MediaWriter ( const ci::ivec2& size ) : _pSinkWriter ( nullptr, [this] ( IMFSinkWriter* sw ) { mfSafeRelease ( &sw ); } )
     {
-        _videoFrameBuffer.resize ( size.x * size.y );
+        _size = size;
+
+        _videoFrameBuffer.resize ( _size.x * _size.y );
         _videoFrameBuffer.clear ( );
 
         HRESULT hr = CoInitializeEx ( nullptr, COINIT_APARTMENTTHREADED );
@@ -18,13 +20,13 @@ namespace AX::Video
             hr = MFStartup ( MF_VERSION );
             if (SUCCEEDED ( hr ))
             {
-                hr = InitializeSinkWriter ( size );
+                hr = InitializeSinkWriter ( );
             }
         }
 
         if (SUCCEEDED ( hr ))
         {
-            _fbo = ci::gl::Fbo::create ( size.x, size.y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
+            _fbo = ci::gl::Fbo::create ( _size.x, _size.y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
 
             _rtStart = 0;
             _isReady = true;
@@ -44,13 +46,13 @@ namespace AX::Video
     }
     MediaWriter::~MediaWriter ( )
     {
-        HRESULT hr = _pSinkWriter->Finalize ( );
+        Finalize ( );
 
         MFShutdown ( );
         CoUninitialize ( );
     }
 
-    bool MediaWriter::Write ( ci::gl::TextureRef textureRef, const ci::ivec2& size, bool flip )
+    bool MediaWriter::Write ( ci::gl::TextureRef textureRef, bool flip )
     {
         if (!_isReady)
             return false;
@@ -63,12 +65,12 @@ namespace AX::Video
             {
                 ci::gl::ScopedFramebuffer scopedFbo ( _fbo );
                 ci::gl::ScopedModelMatrix scopedMM;
-                ci::gl::translate ( 0.0f, ( float ) size.y, 0.0f );
+                ci::gl::translate ( 0.0f, ( float ) _size.y, 0.0f );
                 ci::gl::scale ( 1.0f, -1.0f, 1.0f );
                 ci::gl::draw ( textureRef );
             }
             auto surface = _fbo->readPixels8u ( _fbo->getBounds ( ) );
-            hr = WriteFrame ( size, surface.getData ( ) );
+            hr = WriteFrame ( surface.getData ( ) );
             if (!SUCCEEDED ( hr ))
             {
                 ci::app::console ( ) << "error on write" << std::endl;
@@ -81,7 +83,7 @@ namespace AX::Video
         return SUCCEEDED ( hr );
     }
 
-    HRESULT MediaWriter::InitializeSinkWriter ( const ci::ivec2& size )
+    HRESULT MediaWriter::InitializeSinkWriter ( )
     {
         _stream = -1;
 
@@ -152,7 +154,7 @@ namespace AX::Video
         }
         if (SUCCEEDED ( hr ))
         {
-            hr = MFSetAttributeSize ( pMediaTypeOut.get ( ), MF_MT_FRAME_SIZE, size.x, size.y );//VIDEO_WIDTH, VIDEO_HEIGHT);
+            hr = MFSetAttributeSize ( pMediaTypeOut.get ( ), MF_MT_FRAME_SIZE, _size.x, _size.y );//VIDEO_WIDTH, VIDEO_HEIGHT);
         }
         if (SUCCEEDED ( hr ))
         {
@@ -188,7 +190,7 @@ namespace AX::Video
         }
         if (SUCCEEDED ( hr ))
         {
-            hr = MFSetAttributeSize ( pMediaTypeIn.get ( ), MF_MT_FRAME_SIZE, size.x, size.y );//VIDEO_WIDTH, VIDEO_HEIGHT);
+            hr = MFSetAttributeSize ( pMediaTypeIn.get ( ), MF_MT_FRAME_SIZE, _size.x, _size.y );//VIDEO_WIDTH, VIDEO_HEIGHT);
         }
         if (SUCCEEDED ( hr ))
         {
@@ -225,13 +227,13 @@ namespace AX::Video
         return hr;
     }
 
-    HRESULT MediaWriter::WriteFrame ( const ci::ivec2& size, BYTE* videoBuffer )
+    HRESULT MediaWriter::WriteFrame ( BYTE* videoBuffer )
     {
         std::unique_ptr<IMFSample, std::function<void ( IMFSample* )>> pSample ( nullptr, [this] ( IMFSample* s ) { mfSafeRelease ( &s ); } );
         std::unique_ptr<IMFMediaBuffer, std::function<void ( IMFMediaBuffer* )>> pBuffer ( nullptr, [this] ( IMFMediaBuffer* mb ) { mfSafeRelease ( &mb ); } );
 
-        const LONG cbWidth = 4 * size.x;
-        const DWORD cbBuffer = cbWidth * size.y;
+        const LONG cbWidth = 4 * _size.x;
+        const DWORD cbBuffer = cbWidth * _size.y;
 
         BYTE* pData;
 
@@ -253,7 +255,7 @@ namespace AX::Video
                 videoBuffer,    // First row in source image.
                 cbWidth,        // Source stride.
                 cbWidth,        // Image width in bytes.
-                size.y          // Image height in pixels.
+                _size.y          // Image height in pixels.
             );
         }
         if (pBuffer)

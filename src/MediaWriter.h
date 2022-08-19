@@ -21,12 +21,14 @@ namespace AX::Video
         MediaWriter ( const ci::ivec2& size );
         ~MediaWriter ( );
 
-        bool Write ( ci::gl::TextureRef textureRef, const ci::ivec2& size, bool flip = true );
+        bool Write ( ci::gl::TextureRef textureRef, bool flip = true );
         bool Finalize ( );
     protected:
-        HRESULT InitializeSinkWriter ( const ci::ivec2& size );
-        HRESULT WriteFrame ( const ci::ivec2& size, BYTE* videoBuffer );
+        HRESULT InitializeSinkWriter ();
+        HRESULT WriteFrame (BYTE* videoBuffer );
+
         std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>> _pSinkWriter;
+        ci::ivec2 _size;
         DWORD _stream = -1;
         LONGLONG _rtStart = 0;
         long _videoFrameDuration = 0;

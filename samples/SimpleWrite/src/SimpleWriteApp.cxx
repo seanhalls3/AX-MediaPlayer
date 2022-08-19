@@ -130,11 +130,6 @@ void SimpleWriteApp::update ( )
 {
     if (_player->IsHardwareAccelerated ( ))
     {
-        // You can still use this method in software rendered mode
-        // but it will create a new texture every time it's called
-        // even if ::CheckNewFrame() was false. Use the above method 
-        // for optimal texture creation in software mode but if you 
-        // don't care, this block is functionally identical in both paths
         if (auto lease = _player->GetTexture ( ))
         {
             // You can now use this texture until `lease` goes out
@@ -145,7 +140,7 @@ void SimpleWriteApp::update ( )
 
             if (_writer)
             {
-                _writer->Write ( textureRef, _player->GetSize ( ) );
+                _writer->Write ( textureRef );
             }
         }
     }
@@ -162,7 +157,6 @@ void SimpleWriteApp::draw ( )
 
     if (_player->CheckNewFrame ( ))
     {
-        // Only true if using the CPU render path
         if (auto surface = _player->GetSurface ( ))
         {
             _texture = *_player->GetTexture ( );
