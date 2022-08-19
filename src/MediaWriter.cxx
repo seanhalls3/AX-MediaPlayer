@@ -2,14 +2,18 @@
 
 namespace AX::Video
 {
-    MediaWriterRef MediaWriter::Create ( const ci::ivec2& size )
+    MediaWriterRef MediaWriter::Create ( const ci::ivec2& size, int bitrate, int fps )
     {
-        return MediaWriterRef ( new MediaWriter ( size ) );
+        return MediaWriterRef ( new MediaWriter ( size, bitrate, fps ) );
     }
 
-    MediaWriter::MediaWriter ( const ci::ivec2& size ) : _pSinkWriter ( nullptr, [this] ( IMFSinkWriter* sw ) { mfSafeRelease ( &sw ); } )
+    MediaWriter::MediaWriter ( const ci::ivec2& size, int bitrate, int fps ) : _pSinkWriter ( nullptr, [this] ( IMFSinkWriter* sw ) { mfSafeRelease ( &sw ); } )
     {
         _size = size;
+        _videoBitrate = bitrate;
+        _fps = fps;
+
+        _videoFrameDuration = 0.4055375 * ( 10 * 1000 * 1000 / fps );
 
         _videoFrameBuffer.resize ( _size.x * _size.y );
         _videoFrameBuffer.clear ( );
@@ -95,9 +99,11 @@ namespace AX::Video
         std::unique_ptr<IMFSourceReader, std::function<void ( IMFSourceReader* )>> pMediaReader ( nullptr, [this] ( IMFSourceReader* sr ) { mfSafeRelease ( &sr ); } );
         std::unique_ptr<IMFMediaType, std::function<void ( IMFMediaType* )>> pMediaType ( nullptr, [this] ( IMFMediaType* mt ) { mfSafeRelease ( &mt ); } );
 
-        int fps = 30;
-        UINT32 video_bitrate = 0;
+        //int fps = 30;
+        //UINT32 video_bitrate = 0;
+        HRESULT hr = E_FAIL;
 
+        /*
         IMFSourceReader* ppMediaReader;
         HRESULT hr = MFCreateSourceReaderFromURL ( L"bbb.mp4", nullptr, &ppMediaReader );
         pMediaReader.reset ( ppMediaReader );
@@ -114,15 +120,18 @@ namespace AX::Video
                 if ( SUCCEEDED ( hr ) )
                 {
                     fps = ( float ) pNumerator / ( float ) pDenominator;
+                    ci::app::console ( ) << "fps: " << fps << std::endl;
                     _videoFrameDuration = 0.4055375 * ( 10 * 1000 * 1000 / fps );
+                    ci::app::console ( ) << "video_frame_duration: " << _videoFrameDuration << std::endl;
                 }
 
                 video_bitrate = MFGetAttributeUINT32 ( pMediaType.get ( ), MF_MT_AVG_BITRATE, 0 );
                 ci::app::console ( ) << "video_bitrate: " << video_bitrate << std::endl;
             }
         }
-
-        if ( SUCCEEDED ( hr ) )
+        */
+         
+        //if ( SUCCEEDED ( hr ) )
         {
             IMFSinkWriter* p;
             hr = MFCreateSinkWriterFromURL ( L"bbb_copy.mp4", nullptr, nullptr, &p );
@@ -146,7 +155,7 @@ namespace AX::Video
         }
         if ( SUCCEEDED ( hr ) )
         {
-            hr = pMediaTypeOut->SetUINT32 ( MF_MT_AVG_BITRATE, video_bitrate );
+            hr = pMediaTypeOut->SetUINT32 ( MF_MT_AVG_BITRATE, _videoBitrate );
         }
         if ( SUCCEEDED ( hr ) )
         {
@@ -158,7 +167,7 @@ namespace AX::Video
         }
         if ( SUCCEEDED ( hr ) )
         {
-            hr = MFSetAttributeRatio ( pMediaTypeOut.get ( ), MF_MT_FRAME_RATE, fps * 1.2, 1 );
+            hr = MFSetAttributeRatio ( pMediaTypeOut.get ( ), MF_MT_FRAME_RATE, _fps * 1.2, 1 );
         }
         if ( SUCCEEDED ( hr ) )
         {
@@ -194,7 +203,7 @@ namespace AX::Video
         }
         if ( SUCCEEDED ( hr ) )
         {
-            hr = MFSetAttributeRatio ( pMediaTypeIn.get ( ), MF_MT_FRAME_RATE, fps, 1 );
+            hr = MFSetAttributeRatio ( pMediaTypeIn.get ( ), MF_MT_FRAME_RATE, _fps, 1 );
         }
         if ( SUCCEEDED ( hr ) )
         {

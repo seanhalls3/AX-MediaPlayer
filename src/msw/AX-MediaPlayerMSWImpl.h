@@ -112,6 +112,9 @@ namespace AX::Video
         float   GetPositionInSeconds ( ) const;
         float   GetDurationInSeconds ( ) const { return _duration; }
 
+        int     GetBitrate ( ) const { return _bitrate; }
+        int     GetFps ( ) const { return _fps; }
+
         bool    CheckNewFrame ( ) const { return _hasNewFrame.load ( ); }
         const   ci::Surface8uRef & GetSurface ( ) const;
         MediaPlayer::FrameLeaseRef GetTexture ( ) const;
@@ -134,6 +137,8 @@ namespace AX::Video
         ci::ivec2                   _size;
         MediaPlayer::Format         _format;
         float                       _duration{ 0.0f };
+        int                         _bitrate{ 0 };
+        int                         _fps{ 0 };
         bool                        _hasMetadata{ false };
         ci::Surface8uRef            _surface{ nullptr };
         RenderPathRef               _renderPath;

@@ -125,6 +125,8 @@ namespace AX::Video
         float   GetPositionInSeconds ( ) const;
         float   GetDurationInSeconds ( ) const;
         
+        int     GetBitrate ( ) const;
+        int     GetFps ( ) const;
         bool    CheckNewFrame ( ) const;
 
         const ci::Surface8uRef & GetSurface ( ) const;

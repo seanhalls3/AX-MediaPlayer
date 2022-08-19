@@ -22,6 +22,10 @@
 #include <mfapi.h>
 #include <mferror.h>
 #include <mfmediaengine.h>
+#include <mfapi.h>
+#include <mfidl.h>
+#include <Mfreadwrite.h>
+#include <mferror.h>
 
 using namespace ci;
 
@@ -324,6 +328,26 @@ namespace AX::Video
                 
                 _mediaEngine->SetSource ( SafeBSTR{ actualPath } );
                 _mediaEngine->Load ( );
+
+                IMFSourceReader * pMediaReader;
+                HRESULT hr = MFCreateSourceReaderFromURL ( SafeBSTR{ actualPath }, nullptr, &pMediaReader );
+                if ( SUCCEEDED ( hr ) )
+                {
+                    IMFMediaType * pMediaType;
+                    hr = pMediaReader->GetCurrentMediaType ( 1, &pMediaType );
+                    if ( SUCCEEDED ( hr ) )
+                    {
+                        UINT32 pNumerator;
+                        UINT32 pDenominator;
+                        hr = MFGetAttributeRatio ( pMediaType, MF_MT_FRAME_RATE, &pNumerator, &pDenominator );
+                        if ( SUCCEEDED ( hr ) )
+                        {
+                            _fps = ( float ) pNumerator / ( float ) pDenominator;
+                        }
+
+                        _bitrate = MFGetAttributeUINT32 ( pMediaType, MF_MT_AVG_BITRATE, 0 );
+                    }
+                }
 
                 _mediaEngine->QueryInterface ( _mediaEngineEx.GetAddressOf ( ) );
             }

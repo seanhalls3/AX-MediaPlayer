@@ -199,6 +199,16 @@ namespace AX
             return _impl->GetDurationInSeconds ( );
         }
 
+        int MediaPlayer::GetBitrate ( ) const
+        {
+            return _impl->GetBitrate ( );
+        }
+
+        int MediaPlayer::GetFps ( ) const
+        {
+            return _impl->GetFps ( );
+        }
+
         bool MediaPlayer::CheckNewFrame ( ) const
         {
             return _impl->CheckNewFrame ( );

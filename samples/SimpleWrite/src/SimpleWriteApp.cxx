@@ -113,7 +113,7 @@ void SimpleWriteApp::connectSignals ( )
         {
             std::cout << "OnReady: " << _player->GetDurationInSeconds ( ) << std::endl;
 
-            _writer = AX::Video::MediaWriter::Create ( _player->GetSize ( ) );
+            _writer = AX::Video::MediaWriter::Create ( _player->GetSize ( ), _player->GetBitrate ( ), _player->GetFps( ) );
 
             if ( _writer )
             {
