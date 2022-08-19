@@ -12,6 +12,7 @@ if( NOT TARGET AX-MediaPlayer )
 	endif()
 
 	list( APPEND AXMP_SOURCE_FILES "${AXMP_SOURCE_PATH}/AX-MediaPlayer.h" "${AXMP_SOURCE_PATH}/AX-MediaPlayer.cxx" )
+	list( APPEND AXMP_SOURCE_FILES "${AXMP_SOURCE_PATH}/MediaWriter.h" "${AXMP_SOURCE_PATH}/MediaWriter.cxx" )
 
 	add_library( AX-MediaPlayer ${AXMP_SOURCE_FILES} )
 
