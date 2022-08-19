@@ -12,7 +12,7 @@ namespace AX::Video
         _videoFrameBuffer.resize ( size.x * size.y );
         _videoFrameBuffer.clear ( );
 
-        HRESULT hr = CoInitializeEx ( NULL, COINIT_APARTMENTTHREADED );
+        HRESULT hr = CoInitializeEx ( nullptr, COINIT_APARTMENTTHREADED );
         if (SUCCEEDED ( hr ))
         {
             hr = MFStartup ( MF_VERSION );
@@ -103,7 +103,7 @@ namespace AX::Video
         UINT32 video_bitrate = 0;
 
         IMFSourceReader* ppMediaReader;
-        HRESULT hr = MFCreateSourceReaderFromURL ( L"bbb.mp4", NULL, &ppMediaReader );
+        HRESULT hr = MFCreateSourceReaderFromURL ( L"bbb.mp4", nullptr, &ppMediaReader );
         pMediaReader.reset ( ppMediaReader );
         if (SUCCEEDED ( hr ))
         {
@@ -129,7 +129,7 @@ namespace AX::Video
         if (SUCCEEDED ( hr ))
         {
             IMFSinkWriter* p;
-            hr = MFCreateSinkWriterFromURL ( L"bbb_copy.mp4", NULL, NULL, &p );
+            hr = MFCreateSinkWriterFromURL ( L"bbb_copy.mp4", nullptr, nullptr, &p );
             pSinkWriter.reset ( p );
         }
 
@@ -206,7 +206,7 @@ namespace AX::Video
         }
         if (SUCCEEDED ( hr ))
         {
-            hr = pSinkWriter->SetInputMediaType ( streamIndex, pMediaTypeIn.get ( ), NULL );
+            hr = pSinkWriter->SetInputMediaType ( streamIndex, pMediaTypeIn.get ( ), nullptr );
         }
 
         // Tell the sink writer to start accepting data.
@@ -259,7 +259,7 @@ namespace AX::Video
         // Lock the buffer and copy the video frame to the buffer.
         if (SUCCEEDED ( hr ))
         {
-            hr = pBuffer->Lock ( &pData, NULL, NULL );
+            hr = pBuffer->Lock ( &pData, nullptr, nullptr );
         }
         if (SUCCEEDED ( hr ))
         {

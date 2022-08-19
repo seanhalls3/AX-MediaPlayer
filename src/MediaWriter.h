@@ -42,7 +42,7 @@ namespace AX::Video
             if (*ppT)
             {
                 ( *ppT )->Release ( );
-                *ppT = NULL;
+                *ppT = nullptr;
             }
         }
 
