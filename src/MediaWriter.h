@@ -17,8 +17,8 @@ namespace AX::Video
     class MediaWriter : public ci::Noncopyable
     {
     public:
-        static  MediaWriterRef Create ( const ci::ivec2& size, int bitrate, int fps );
-        MediaWriter ( const ci::ivec2& size, int bitrate, int fps );
+        static  MediaWriterRef Create ( const ci::fs::path & filePath, const ci::ivec2& size, int bitrate, int fps );
+        MediaWriter ( const ci::fs::path & filePath, const ci::ivec2& size, int bitrate, int fps );
         ~MediaWriter ( );
 
         bool Write ( ci::gl::TextureRef textureRef, bool flip = true );
@@ -37,6 +37,7 @@ namespace AX::Video
         ci::gl::FboRef _fbo;
         int _videoBitrate;
         int _fps;
+        ci::fs::path _filePath;
 
         template <class T> void mfSafeRelease ( T** ppT )
         {

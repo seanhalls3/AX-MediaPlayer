@@ -107,14 +107,13 @@ void SimpleWriteApp::connectSignals ( )
             std::cout << "OnComplete\n";
             _writer->Finalize ( );
             std::this_thread::sleep_for ( std::chrono::seconds ( 1 ) );
-        app:quit ( );
+            app:quit ( );
         } );
     _player->OnReady.connect ( [=]
         {
             std::cout << "OnReady: " << _player->GetDurationInSeconds ( ) << std::endl;
-
-            _writer = AX::Video::MediaWriter::Create ( _player->GetSize ( ), _player->GetBitrate ( ), _player->GetFps( ) );
-
+            // \samples\AX-MediaPlayer\samples\SimpleWrite
+            _writer = AX::Video::MediaWriter::Create ( CINDER_PATH "/samples/AX-MediaPlayer/samples/SimpleWrite/build/bbb_copy.mp4", _player->GetSize ( ), _player->GetBitrate ( ), _player->GetFps( ) );
             if ( _writer )
             {
                 setWindowSize ( _player->GetSize ( ) );
