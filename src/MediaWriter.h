@@ -13,6 +13,9 @@
 
 namespace AX::Video
 {
+    // MediaWriter was built by using tutorial found here:
+    // https://docs.microsoft.com/en-us/windows/win32/medfound/tutorial--using-the-sink-writer-to-encode-video
+
     using MediaWriterRef = std::shared_ptr<class MediaWriter>;
     class MediaWriter : public ci::Noncopyable
     {
