@@ -82,7 +82,7 @@ void SimpleWriteApp::loadDefaultVideo ( )
 
 void SimpleWriteApp::keyDown ( KeyEvent event )
 {
-    if (event.getChar ( ) == 'r')
+    if ( event.getChar ( ) == 'r' )
     {
         loadDefaultVideo ( );
     }
@@ -107,7 +107,7 @@ void SimpleWriteApp::connectSignals ( )
             std::cout << "OnComplete\n";
             _writer->Finalize ( );
             std::this_thread::sleep_for ( std::chrono::seconds ( 1 ) );
-            app:quit ( );
+        app:quit ( );
         } );
     _player->OnReady.connect ( [=]
         {
@@ -115,7 +115,7 @@ void SimpleWriteApp::connectSignals ( )
 
             _writer = AX::Video::MediaWriter::Create ( _player->GetSize ( ) );
 
-            if (_writer)
+            if ( _writer )
             {
                 setWindowSize ( _player->GetSize ( ) );
                 _player->Play ( );
@@ -128,9 +128,9 @@ void SimpleWriteApp::connectSignals ( )
 
 void SimpleWriteApp::update ( )
 {
-    if (_player->IsHardwareAccelerated ( ))
+    if ( _player->IsHardwareAccelerated ( ) )
     {
-        if (auto lease = _player->GetTexture ( ))
+        if ( auto lease = _player->GetTexture ( ) )
         {
             // You can now use this texture until `lease` goes out
             // of scope (it will Unlock() the texture when destructing )
@@ -138,7 +138,7 @@ void SimpleWriteApp::update ( )
 
             auto textureRef = lease->ToTexture ( );
 
-            if (_writer)
+            if ( _writer )
             {
                 _writer->Write ( textureRef );
             }
@@ -153,11 +153,11 @@ void SimpleWriteApp::draw ( )
     gl::clear ( Colorf::black ( ) );
 
     auto s = std::to_string ( ( _player->GetPositionInSeconds ( ) / _player->GetDurationInSeconds ( ) ) * 100 ) + "%";
-    ci::gl::drawStringCentered ( s, ci::app::getWindowCenter ( ), ci::ColorA(1,1,1,1), ci::Font("Arial", 68 ) );
+    ci::gl::drawStringCentered ( s, ci::app::getWindowCenter ( ), ci::ColorA ( 1, 1, 1, 1 ), ci::Font ( "Arial", 68 ) );
 
-    if (_player->CheckNewFrame ( ))
+    if ( _player->CheckNewFrame ( ) )
     {
-        if (auto surface = _player->GetSurface ( ))
+        if ( auto surface = _player->GetSurface ( ) )
         {
             _texture = *_player->GetTexture ( );
         }

@@ -15,16 +15,16 @@ namespace AX::Video
         _videoFrameBuffer.clear ( );
 
         HRESULT hr = CoInitializeEx ( nullptr, COINIT_APARTMENTTHREADED );
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFStartup ( MF_VERSION );
-            if (SUCCEEDED ( hr ))
+            if ( SUCCEEDED ( hr ) )
             {
                 hr = InitializeSinkWriter ( );
             }
         }
 
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             _fbo = ci::gl::Fbo::create ( _size.x, _size.y, ci::gl::Fbo::Format ( ).disableDepth ( ) );
 
@@ -37,7 +37,7 @@ namespace AX::Video
     {
         HRESULT hr = E_FAIL;
 
-        if (_isReady)
+        if ( _isReady )
         {
             hr = _pSinkWriter->Finalize ( );
             _isReady = false;
@@ -54,12 +54,12 @@ namespace AX::Video
 
     bool MediaWriter::Write ( ci::gl::TextureRef textureRef, bool flip )
     {
-        if (!_isReady)
+        if ( !_isReady )
             return false;
 
         HRESULT hr = E_FAIL;
 
-        if (_pSinkWriter && _fbo)
+        if ( _pSinkWriter && _fbo )
         {
             if ( flip )
             {
@@ -71,7 +71,7 @@ namespace AX::Video
             }
             auto surface = _fbo->readPixels8u ( _fbo->getBounds ( ) );
             hr = WriteFrame ( surface.getData ( ) );
-            if (!SUCCEEDED ( hr ))
+            if ( !SUCCEEDED ( hr ) )
             {
                 ci::app::console ( ) << "error on write" << std::endl;
                 return false;
@@ -101,17 +101,17 @@ namespace AX::Video
         IMFSourceReader* ppMediaReader;
         HRESULT hr = MFCreateSourceReaderFromURL ( L"bbb.mp4", nullptr, &ppMediaReader );
         pMediaReader.reset ( ppMediaReader );
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             IMFMediaType* ppMediaType;
             hr = pMediaReader->GetCurrentMediaType ( 1, &ppMediaType );
             pMediaType.reset ( ppMediaType );
-            if (SUCCEEDED ( hr ))
+            if ( SUCCEEDED ( hr ) )
             {
                 UINT32 pNumerator;
                 UINT32 pDenominator;
                 hr = MFGetAttributeRatio ( pMediaType.get ( ), MF_MT_FRAME_RATE, &pNumerator, &pDenominator );
-                if (SUCCEEDED ( hr ))
+                if ( SUCCEEDED ( hr ) )
                 {
                     fps = ( float ) pNumerator / ( float ) pDenominator;
                     _videoFrameDuration = 0.4055375 * ( 10 * 1000 * 1000 / fps );
@@ -122,7 +122,7 @@ namespace AX::Video
             }
         }
 
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             IMFSinkWriter* p;
             hr = MFCreateSinkWriterFromURL ( L"bbb_copy.mp4", nullptr, nullptr, &p );
@@ -130,94 +130,94 @@ namespace AX::Video
         }
 
         // Set the output media type.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             IMFMediaType* p;
             hr = MFCreateMediaType ( &p );
             pMediaTypeOut.reset ( p );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pMediaTypeOut->SetGUID ( MF_MT_MAJOR_TYPE, MFMediaType_Video );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pMediaTypeOut->SetGUID ( MF_MT_SUBTYPE, MFVideoFormat_H264 );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pMediaTypeOut->SetUINT32 ( MF_MT_AVG_BITRATE, video_bitrate );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pMediaTypeOut->SetUINT32 ( MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFSetAttributeSize ( pMediaTypeOut.get ( ), MF_MT_FRAME_SIZE, _size.x, _size.y );//VIDEO_WIDTH, VIDEO_HEIGHT);
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFSetAttributeRatio ( pMediaTypeOut.get ( ), MF_MT_FRAME_RATE, fps * 1.2, 1 );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFSetAttributeRatio ( pMediaTypeOut.get ( ), MF_MT_PIXEL_ASPECT_RATIO, 1, 1 );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pSinkWriter->AddStream ( pMediaTypeOut.get ( ), &streamIndex );
         }
 
         // Set the input media type.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             IMFMediaType* p;
             hr = MFCreateMediaType ( &p );
             pMediaTypeIn.reset ( p );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pMediaTypeIn->SetGUID ( MF_MT_MAJOR_TYPE, MFMediaType_Video );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pMediaTypeIn->SetGUID ( MF_MT_SUBTYPE, MFVideoFormat_RGB32 );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pMediaTypeIn->SetUINT32 ( MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFSetAttributeSize ( pMediaTypeIn.get ( ), MF_MT_FRAME_SIZE, _size.x, _size.y );//VIDEO_WIDTH, VIDEO_HEIGHT);
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFSetAttributeRatio ( pMediaTypeIn.get ( ), MF_MT_FRAME_RATE, fps, 1 );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFSetAttributeRatio ( pMediaTypeIn.get ( ), MF_MT_PIXEL_ASPECT_RATIO, 1, 1 );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pSinkWriter->SetInputMediaType ( streamIndex, pMediaTypeIn.get ( ), nullptr );
         }
 
         // Tell the sink writer to start accepting data.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pSinkWriter->BeginWriting ( );
         }
 
-        if (hr == MF_E_TOPO_CODEC_NOT_FOUND)
+        if ( hr == MF_E_TOPO_CODEC_NOT_FOUND )
         {
             ci::app::console ( ) << "codec not found" << std::endl;
         }
 
         // Return the pointer to the caller.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             _pSinkWriter = std::move ( pSinkWriter );
             _pSinkWriter.get ( )->AddRef ( );
@@ -243,11 +243,11 @@ namespace AX::Video
         pBuffer.reset ( ppBuffer );
 
         // Lock the buffer and copy the video frame to the buffer.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pBuffer->Lock ( &pData, nullptr, nullptr );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = MFCopyImage (
                 pData,          // Destination buffer.
@@ -258,39 +258,39 @@ namespace AX::Video
                 _size.y          // Image height in pixels.
             );
         }
-        if (pBuffer)
+        if ( pBuffer )
         {
             pBuffer->Unlock ( );
         }
 
         // Set the data length of the buffer.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pBuffer->SetCurrentLength ( cbBuffer );
         }
         // Create a media sample and add the buffer to the sample.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             IMFSample* ppSample;
             hr = MFCreateSample ( &ppSample );
             pSample.reset ( ppSample );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pSample->AddBuffer ( pBuffer.get ( ) );
         }
         // Set the time stamp and the duration.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pSample->SetSampleTime ( _rtStart );
         }
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = pSample->SetSampleDuration ( _videoFrameDuration );
         }
 
         // Send the sample to the Sink Writer.
-        if (SUCCEEDED ( hr ))
+        if ( SUCCEEDED ( hr ) )
         {
             hr = _pSinkWriter->WriteSample ( _stream, pSample.get ( ) );
         }

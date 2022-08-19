@@ -24,8 +24,8 @@ namespace AX::Video
         bool Write ( ci::gl::TextureRef textureRef, bool flip = true );
         bool Finalize ( );
     protected:
-        HRESULT InitializeSinkWriter ();
-        HRESULT WriteFrame (BYTE* videoBuffer );
+        HRESULT InitializeSinkWriter ( );
+        HRESULT WriteFrame ( BYTE* videoBuffer );
 
         std::unique_ptr<IMFSinkWriter, std::function<void ( IMFSinkWriter* )>> _pSinkWriter;
         ci::ivec2 _size;
@@ -38,7 +38,7 @@ namespace AX::Video
 
         template <class T> void mfSafeRelease ( T** ppT )
         {
-            if (*ppT)
+            if ( *ppT )
             {
                 ( *ppT )->Release ( );
                 *ppT = nullptr;
