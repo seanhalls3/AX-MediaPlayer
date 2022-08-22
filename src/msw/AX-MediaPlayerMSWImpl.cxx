@@ -329,23 +329,23 @@ namespace AX::Video
                 _mediaEngine->SetSource ( SafeBSTR{ actualPath } );
                 _mediaEngine->Load ( );
 
-                IMFSourceReader * pMediaReader;
+                ComPtr<IMFSourceReader> pMediaReader;
                 HRESULT hr = MFCreateSourceReaderFromURL ( SafeBSTR{ actualPath }, nullptr, &pMediaReader );
                 if ( SUCCEEDED ( hr ) )
                 {
-                    IMFMediaType * pMediaType;
+                    ComPtr<IMFMediaType> pMediaType;
                     hr = pMediaReader->GetCurrentMediaType ( 1, &pMediaType );
                     if ( SUCCEEDED ( hr ) )
                     {
                         UINT32 pNumerator;
                         UINT32 pDenominator;
-                        hr = MFGetAttributeRatio ( pMediaType, MF_MT_FRAME_RATE, &pNumerator, &pDenominator );
+                        hr = MFGetAttributeRatio ( pMediaType.Get(), MF_MT_FRAME_RATE, &pNumerator, &pDenominator );
                         if ( SUCCEEDED ( hr ) )
                         {
                             _fps = ( int )( ( float ) pNumerator / ( float ) pDenominator );
                         }
 
-                        _bitrate = MFGetAttributeUINT32 ( pMediaType, MF_MT_AVG_BITRATE, 0 );
+                        _bitrate = MFGetAttributeUINT32 ( pMediaType.Get(), MF_MT_AVG_BITRATE, 0 );
                     }
                 }
 
