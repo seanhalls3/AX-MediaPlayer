@@ -342,7 +342,7 @@ namespace AX::Video
                         hr = MFGetAttributeRatio ( pMediaType, MF_MT_FRAME_RATE, &pNumerator, &pDenominator );
                         if ( SUCCEEDED ( hr ) )
                         {
-                            _fps = ( float ) pNumerator / ( float ) pDenominator;
+                            _fps = ( int )( ( float ) pNumerator / ( float ) pDenominator );
                         }
 
                         _bitrate = MFGetAttributeUINT32 ( pMediaType, MF_MT_AVG_BITRATE, 0 );

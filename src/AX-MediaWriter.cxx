@@ -14,7 +14,7 @@ namespace AX::Video
         _videoBitrate = bitrate;
         _fps = fps;
 
-        _videoFrameDuration = 0.4055375 * ( 10 * 1000 * 1000 / fps );
+        _videoFrameDuration = (long)(0.4055375 * ( 10 * 1000 * 1000 / fps ));
 
         _videoFrameBuffer.resize ( _size.x * _size.y );
         _videoFrameBuffer.clear ( );
@@ -140,7 +140,7 @@ namespace AX::Video
         }
         if ( SUCCEEDED ( hr ) )
         {
-            hr = MFSetAttributeRatio ( pMediaTypeOut.get ( ), MF_MT_FRAME_RATE, _fps * 1.2, 1 );
+            hr = MFSetAttributeRatio ( pMediaTypeOut.get ( ), MF_MT_FRAME_RATE, ( UINT32 )( _fps * 1.2 ), 1 );
         }
         if ( SUCCEEDED ( hr ) )
         {
