@@ -13,7 +13,7 @@
 #include "AX-MediaPlayer.h"
 #include "guiddef.h"
 
-#include "MediaWriter.h"
+#include "AX-MediaWriter.h"
 
 #pragma comment(lib, "Mfreadwrite.lib")
 
@@ -60,10 +60,6 @@ protected:
 
 void SimpleWriteApp::setup ( )
 {
-#ifdef HAS_DEBUG_UI
-    ui::Initialize ( );
-#endif
-
     console ( ) << gl::getString ( GL_RENDERER ) << std::endl;
     console ( ) << gl::getString ( GL_VERSION ) << std::endl;
 
@@ -94,10 +90,11 @@ void SimpleWriteApp::connectSignals ( )
         {
             std::cout << "OnReady: " << _player->GetDurationInSeconds ( ) << std::endl;
 
-            _writer = AX::Video::MediaWriter::Create ( CINDER_PATH "/samples/AX-MediaPlayer/samples/SimpleWrite/build/bbb_copy.mp4", _player->GetSize ( ), _player->GetBitrate ( ), _player->GetFps( ) );
+            _writer = AX::Video::MediaWriter::Create ( "bbb_copy.mp4", _player->GetSize ( ), _player->GetBitrate ( ), _player->GetFps( ) );
             if ( _writer )
             {
                 setWindowSize ( _player->GetSize ( ) );
+                _player->SetMuted ( true );
                 _player->Play ( );
             }
         } );
