@@ -111,7 +111,6 @@ void SimpleWriteApp::update ( )
         {
             // You can now use this texture until `lease` goes out
             // of scope (it will Unlock() the texture when destructing )
-            //gl::draw ( *lease, getWindowBounds());
 
             auto textureRef = lease->ToTexture ( );
 
